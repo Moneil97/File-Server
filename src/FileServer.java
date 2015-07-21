@@ -43,7 +43,19 @@ public class FileServer {
 				
 				if (o instanceof FilePacket){
 					FilePacket packet = (FilePacket)o;
-					dataOut = new FileOutputStream(new File(packet.dest + "//" + packet.fileName));
+
+					//Check for and create necessary folders
+					File dest = new File("C:\\Users\\Cameron\\Desktop\\FileServer Database\\" + packet.dest);
+					if (!dest.exists()){
+						dest.mkdirs();
+						say("Folder Created: FileServer Database\\" + packet.dest);
+						Thread.yield();
+					}
+					
+					//Destination File
+					dest = new File("C:\\Users\\Cameron\\Desktop\\FileServer Database\\" + packet.dest + "\\" + packet.fileName);
+					
+					dataOut = new FileOutputStream(dest);
 					
 					say("writing");
 					//Write Client's file to HDD
@@ -53,7 +65,8 @@ public class FileServer {
 						dataOut.write(bytes, 0, count);
 					}
 					
-					say("done writing");
+					say("File Created: " + dest);
+					say("Closing Streams");
 					//Close Streams/Sockets
 					dataIn.close();
 					dataOut.close();

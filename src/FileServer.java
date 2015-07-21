@@ -38,52 +38,58 @@ public class FileServer {
 				InputStream dataIn = data.getInputStream();
 				FileOutputStream dataOut;
 				
-				//Get packet from Client
-				Object o = controlIn.readObject();
-				
-				if (o instanceof FilePacket){
-					FilePacket packet = (FilePacket)o;
+				//while connected
+				while (true){
+					
+					//Get packet from Client
+					Object o = controlIn.readObject();
+					
+					if (o instanceof FilePacket){
+						FilePacket packet = (FilePacket)o;
+						
+						if (packet.message == Messages.INCOMING_FILE){
+							
+							//Check for and create necessary folders
+							File dest = new File("C:\\Users\\Cameron\\Desktop\\FileServer Database\\" + packet.file.getParent());
+							if (!dest.exists()){
+								dest.mkdirs();
+								say("Folder Created: FileServer Database\\" + packet.file.getParent());
+								Thread.yield();
+							}
+							
+							//Destination File
+							dest = new File("C:\\Users\\Cameron\\Desktop\\FileServer Database\\" + packet.file);
+							
+							dataOut = new FileOutputStream(dest);
+							
+							say("writing");
+							//Write Client's file to HDD
+							byte[] bytes = new byte[8192];
+							int count;
+							while ((count = dataIn.read(bytes)) > 0) {
+								dataOut.write(bytes, 0, count);
+							}
+							
+							say("File Created: " + dest);
+							dataOut.close();
 
-					//Check for and create necessary folders
-					File dest = new File("C:\\Users\\Cameron\\Desktop\\FileServer Database\\" + packet.dest);
-					if (!dest.exists()){
-						dest.mkdirs();
-						say("Folder Created: FileServer Database\\" + packet.dest);
-						Thread.yield();
+						}
+						else if (packet.message == Messages.FINISH){
+							
+							dataIn.close();
+							controlIn.close();
+							data.close();
+							control.close();
+							break;
+						}
 					}
-					
-					//Destination File
-					dest = new File("C:\\Users\\Cameron\\Desktop\\FileServer Database\\" + packet.dest + "\\" + packet.fileName);
-					
-					dataOut = new FileOutputStream(dest);
-					
-					say("writing");
-					//Write Client's file to HDD
-					byte[] bytes = new byte[8192];
-					int count;
-					while ((count = dataIn.read(bytes)) > 0) {
-						dataOut.write(bytes, 0, count);
-					}
-					
-					say("File Created: " + dest);
-					say("Closing Streams");
-					//Close Streams/Sockets
-					dataIn.close();
-					dataOut.close();
-					data.close();
-					controlIn.close();
-					control.close();
-					
 				}
-				else{
-					System.err.println("unknown object: " + o + " : " + o.getClass());
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
+			}catch(Exception e){
 				e.printStackTrace();
 			}
 		}
+
+
 	}
 
 	protected void say(Object o) {

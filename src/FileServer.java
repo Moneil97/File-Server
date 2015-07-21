@@ -2,94 +2,75 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class FileServer {
 
-	ServerSocket server;
-	private Socket control;
+	ServerSocket controlServer, dataServer;
+	Socket control, data;
 	
 	public FileServer() {
 
 		try {
-			server = new ServerSocket(21);
-			say("waiting");
-			control = server.accept();
-			say("connected to: " + control);
-			
-			File file = new File("C:\\Users\\Cameron\\Desktop\\Test Folder\\test.docx");
-			
-			InputStream in = control.getInputStream();
-			FileOutputStream out = new FileOutputStream(file);
-			
-			byte[] bytes = new byte[8192];
-
-		    int count;
-		    while ((count = in.read(bytes)) > 0) {
-		    	say("writing");
-		        out.write(bytes, 0, count);
-		        say("done writing");
-		    }
-		    
-		    say("closing");
-		    in.close();
-		    out.close();
-		    say("done");
-			
-			
-//			new Thread(new Runnable() {
-//				
-//				@Override
-//				public void run() {
-//					
-//					InputStream in;
-//					try {
-//						in = control.getInputStream();
-//						ObjectInputStream oi = new ObjectInputStream(in);
-//						
-//						while (true){
-//							//say((byte)in.read());
-//							//say(oi.readObject());
-//							
-//							Object o = oi.readObject();
-//							
-//							//say(o);
-//							
-//							if (o instanceof File){
-//								say("received file: " + o);
-//							}
-//							else{
-//								say("unknown object: " + o.getClass());
-//							}
-//							
-//							
-//						}
-//						
-//					} catch (IOException e1) {
-//						e1.printStackTrace();
-//					} catch (ClassNotFoundException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//					
-//				}
-//			}).start();
-			
+			//Setup Server
+			controlServer = new ServerSocket(21);
+			dataServer = new ServerSocket(20);
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally{
-//			try {
-//				server.close();
-//				control.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
 		}
 		
-		
-		
-		
+		while (true){
+			
+			try {
+				
+				say("waiting");
+				//Wait for a Client to connect
+				control = controlServer.accept();
+				data = dataServer.accept();
+				
+				say("connected to: " + control);
+				say("connected to: " + data);
+				
+				//Setup Streams
+				ObjectInputStream controlIn = new ObjectInputStream(control.getInputStream());
+				InputStream dataIn = data.getInputStream();
+				FileOutputStream dataOut;
+				
+				//Get packet from Client
+				Object o = controlIn.readObject();
+				
+				if (o instanceof FilePacket){
+					FilePacket packet = (FilePacket)o;
+					dataOut = new FileOutputStream(new File(packet.dest + "//" + packet.fileName));
+					
+					say("writing");
+					//Write Client's file to HDD
+					byte[] bytes = new byte[8192];
+					int count;
+					while ((count = dataIn.read(bytes)) > 0) {
+						dataOut.write(bytes, 0, count);
+					}
+					
+					say("done writing");
+					//Close Streams/Sockets
+					dataIn.close();
+					dataOut.close();
+					data.close();
+					controlIn.close();
+					control.close();
+					
+				}
+				else{
+					System.err.println("unknown object: " + o + " : " + o.getClass());
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	protected void say(Object o) {

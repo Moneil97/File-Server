@@ -31,7 +31,7 @@ public class FileClient {
 			for (File file : files){
 				
 				say(file.toString().substring(sub));
-				controlOut.writeObject(new FilePacket(Messages.INCOMING_FILE, new File(file.toString().substring(sub))));
+				controlOut.writeObject(new FilePacket(/*Messages.INCOMING_FILE,*/ new File(file.toString().substring(sub))));
 				
 				//Setup Streams
 				InputStream in = new FileInputStream(file);

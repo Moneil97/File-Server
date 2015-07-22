@@ -8,7 +8,7 @@ public class Packet implements Serializable{}
 class FilePacket extends Packet implements Serializable{
 
 	//String dest, fileName;
-	Messages message;
+	//Messages message;
 	File file;
 
 //	public FilePacket(Messages message, String dest, String fileName) {
@@ -17,8 +17,8 @@ class FilePacket extends Packet implements Serializable{
 //		this.message = message;
 //	}
 
-	public FilePacket(Messages message, File file) {
-		this.message = message;
+	public FilePacket(/*Messages message, */File file) {
+		//this.message = message;
 		this.file = file;
 	}
 

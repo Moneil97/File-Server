@@ -49,8 +49,47 @@ public class FileServer {
 					
 					//Get packet from Client
 					Object o = controlIn.readObject();
-					
-					if (o instanceof RequestListPacket){
+					if (o instanceof FilePacket){
+						FilePacket packet = (FilePacket)o;
+						
+						//Check for and create necessary folders
+						File dest = addRoot(packet.file.getParent());//new File(root + packet.file.getParent());
+						if (!dest.exists()){
+							dest.mkdirs();
+							say("Folder Created: FileServer Database\\" + packet.file.getParent());
+							Thread.yield();
+						}
+						
+						//Destination File
+						dest = addRoot(packet.file);//new File(root.toString() + packet.file.toString());
+						
+						dataOut = new FileOutputStream(dest);
+						
+						say("writing");
+						//Write Client's file to HDD
+						byte[] bytes = new byte[8192];
+						int count;
+						while ((count = dataIn.read(bytes)) > 0) {
+							dataOut.write(bytes, 0, count);
+						}
+						
+						say("File Created: " + dest);
+						dataOut.close();
+
+					}
+					else if (o instanceof MessagePacket){
+						MessagePacket packet = (MessagePacket)o;
+						
+						if (packet.message == Messages.FINISH){
+							
+							dataIn.close();
+							controlIn.close();
+							data.close();
+							control.close();
+							break;
+						}
+					}
+					else if (o instanceof RequestListPacket){
 						RequestListPacket packet = (RequestListPacket)o;
 						
 						say("Client has requested list from dir: " + packet.currentDir);
@@ -72,45 +111,8 @@ public class FileServer {
 							controlOut.writeObject(new MessagePacket(Messages.CD_FAIL));
 						
 					}
-					else if (o instanceof FilePacket){
-						FilePacket packet = (FilePacket)o;
-						
-						if (packet.message == Messages.INCOMING_FILE){
-							
-							//Check for and create necessary folders
-							File dest = addRoot(packet.file.getParent());//new File(root + packet.file.getParent());
-							if (!dest.exists()){
-								dest.mkdirs();
-								say("Folder Created: FileServer Database\\" + packet.file.getParent());
-								Thread.yield();
-							}
-							
-							//Destination File
-							dest = addRoot(packet.file);//new File(root.toString() + packet.file.toString());
-							
-							dataOut = new FileOutputStream(dest);
-							
-							say("writing");
-							//Write Client's file to HDD
-							byte[] bytes = new byte[8192];
-							int count;
-							while ((count = dataIn.read(bytes)) > 0) {
-								dataOut.write(bytes, 0, count);
-							}
-							
-							say("File Created: " + dest);
-							dataOut.close();
-
-						}
-						else if (packet.message == Messages.FINISH){
-							
-							dataIn.close();
-							controlIn.close();
-							data.close();
-							control.close();
-							break;
-						}
-					}
+					
+					
 				}
 			}catch(Exception e){
 				e.printStackTrace();

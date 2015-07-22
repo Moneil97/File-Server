@@ -48,7 +48,7 @@ public class FileClient {
 				
 			}
 			
-			controlOut.writeObject(new FilePacket(Messages.FINISH));
+			controlOut.writeObject(new MessagePacket(Messages.FINISH));
 			
 			//Close Streams/Sockets
 			control.close();

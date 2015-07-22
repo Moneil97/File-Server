@@ -7,18 +7,9 @@ public class Packet implements Serializable{}
 @SuppressWarnings("serial")
 class FilePacket extends Packet implements Serializable{
 
-	//String dest, fileName;
-	//Messages message;
 	File file;
 
-//	public FilePacket(Messages message, String dest, String fileName) {
-//		this.dest = dest;
-//		this.fileName = fileName;
-//		this.message = message;
-//	}
-
-	public FilePacket(/*Messages message, */File file) {
-		//this.message = message;
+	public FilePacket(File file) {
 		this.file = file;
 	}
 
@@ -60,10 +51,9 @@ class RequestListPacket extends Packet implements Serializable{
 @SuppressWarnings("serial")
 class CDPacket extends Packet implements Serializable{
 	
-	String /*currentDir,*/ newDir;
+	String newDir;
 	
 	public CDPacket(String newDir) {
-		//this.currentDir = currentDir;
 		this.newDir = newDir;
 	}
 	

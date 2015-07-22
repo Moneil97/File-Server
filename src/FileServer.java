@@ -15,8 +15,6 @@ public class FileServer {
 	int rootSub = root.toString().length();
 	
 	public FileServer() {
-		
-		say(root.toString());
 
 		try {
 			//Setup Server
@@ -146,6 +144,7 @@ public class FileServer {
 		return new File(root.toString() + file);
 	}
 	
+	@SuppressWarnings("unused")
 	private File[] addRoots(File[] files){
 		
 		for (int i=0; i<files.length; i++)

@@ -36,16 +36,16 @@ public class FileServer {
 				say("waiting");
 				//Wait for a Client to connect
 				control = controlServer.accept();
-				data = dataServer.accept();
+//				data = dataServer.accept();
 				
 				say("connected to: " + control);
-				say("connected to: " + data);
+				//say("connected to: " + data);
 				
 				//Setup Streams
 				ObjectInputStream controlIn = new ObjectInputStream(control.getInputStream());
 				controlOut = new ObjectOutputStream(control.getOutputStream());
-				InputStream dataIn = data.getInputStream();
-				FileOutputStream dataOut;
+				//InputStream dataIn = data.getInputStream();
+				//FileOutputStream dataOut;
 				
 				//while connected
 				while (true){
@@ -55,44 +55,44 @@ public class FileServer {
 					
 					
 					if (o instanceof FilePacket){
-						FilePacket packet = (FilePacket)o;
-						
-						//Check for and create necessary folders
-						File dest = addRoot(packet.file.getParent());//new File(root + packet.file.getParent());
-						if (!dest.exists()){
-							dest.mkdirs();
-							say("Folder Created: FileServer Database\\" + packet.file.getParent());
-							Thread.yield();
-						}
-						
-						//Destination File
-						dest = addRoot(packet.file);//new File(root.toString() + packet.file.toString());
-						
-						dataOut = new FileOutputStream(dest);
-						
-						say("writing");
-						//Write Client's file to HDD
-						byte[] bytes = new byte[8192];
-						int count;
-						while ((count = dataIn.read(bytes)) > 0) {
-							dataOut.write(bytes, 0, count);
-						}
-						
-						say("File Created: " + dest);
-						dataOut.close();
+//						FilePacket packet = (FilePacket)o;
+//						
+//						//Check for and create necessary folders
+//						File dest = addRoot(packet.file.getParent());//new File(root + packet.file.getParent());
+//						if (!dest.exists()){
+//							dest.mkdirs();
+//							say("Folder Created: FileServer Database\\" + packet.file.getParent());
+//							Thread.yield();
+//						}
+//						
+//						//Destination File
+//						dest = addRoot(packet.file);//new File(root.toString() + packet.file.toString());
+//						
+//						dataOut = new FileOutputStream(dest);
+//						
+//						say("writing");
+//						//Write Client's file to HDD
+//						byte[] bytes = new byte[8192];
+//						int count;
+//						while ((count = dataIn.read(bytes)) > 0) {
+//							dataOut.write(bytes, 0, count);
+//						}
+//						
+//						say("File Created: " + dest);
+//						dataOut.close();
 
 					}
 					else if (o instanceof MessagePacket){
 						MessagePacket packet = (MessagePacket)o;
 						
-						if (packet.message == Messages.FINISH){
-							
-							dataIn.close();
-							controlIn.close();
-							data.close();
-							control.close();
-							break;
-						}
+//						if (packet.message == Messages.FINISH){
+//							
+//							dataIn.close();
+//							controlIn.close();
+//							data.close();
+//							control.close();
+//							break;
+//						}
 					}
 					else if (o instanceof RequestListPacket){
 						RequestListPacket packet = (RequestListPacket)o;
@@ -151,7 +151,8 @@ public class FileServer {
 	
 	private void sendFile(List<File> files) throws IOException {
 		
-		
+		//dataServer = new ServerSocket(20);
+		data = dataServer.accept();
 		
 		for (File file : files){
 			
@@ -177,11 +178,8 @@ public class FileServer {
 			
 		}
 		
-		data.getOutputStream().close();
-		Thread.yield();
+		data.close();
 		controlOut.writeObject(new MessagePacket(Messages.FINISH));
-		
-		
 		
 	}
 	
@@ -241,6 +239,11 @@ public class FileServer {
 			files[i] = addRoot(files[i]);
 		
 		return files;
+	}
+	
+	protected void err(Object o) {
+		System.err.println(o);
+		Thread.yield();
 	}
 
 	protected void say(Object o) {

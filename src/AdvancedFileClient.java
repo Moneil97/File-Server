@@ -21,7 +21,7 @@ public class AdvancedFileClient {
 
 		try {
 			control = new Socket("0", 21);
-			data = new Socket("0", 20);
+			//data = new Socket("0", 20);
 			controlOut = new ObjectOutputStream(control.getOutputStream());
 			controlIn = new ObjectInputStream(control.getInputStream());
 			
@@ -128,6 +128,8 @@ public class AdvancedFileClient {
 	
 	protected void receiveFiles() throws IOException, ClassNotFoundException {
 		
+		data = new Socket("0", 20);
+		
 		FileOutputStream dataOut;
 		InputStream dataIn = data.getInputStream();
 		
@@ -155,7 +157,7 @@ public class AdvancedFileClient {
 				byte[] bytes = new byte[8192];
 				int count;
 				while ((count = dataIn.read(bytes)) > 0) {
-					say("Writing: " + bytes + " to hdd");
+					//say("Writing: " + bytes + " to hdd");
 					dataOut.write(bytes, 0, count);
 				}
 				
@@ -163,7 +165,7 @@ public class AdvancedFileClient {
 				dataOut.close();
 			}
 			else if (o instanceof MessagePacket && ((MessagePacket)o).message == Messages.FINISH){
-				dataIn.close();
+				data.close();
 				return;
 			}
 		

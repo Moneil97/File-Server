@@ -99,12 +99,20 @@ public class AdvancedFileClient {
 				}
 				else if (next.startsWith("get")){
 					
+					//music>sleep.mp3
+					//> music/sleep.mp3
+					
+					
 					//check syntax
 					
 					//Parse input
-					String fileToCopy = currentDir + next.substring(3).trim();
+					String fileToCopy = currentDir + next.substring("get".length()).trim();
 					String dest = "C:\\Users\\Cameron\\Desktop\\Test Folder\\";
 					getDestRoot = dest;
+					
+					say("fileToCopy: " + fileToCopy);
+					rootToRemove = getFileRoot(fileToCopy);
+					say("rootToRemove: " + rootToRemove);
 					
 					//send request
 					controlOut.writeObject(new RequestFilePacket(fileToCopy));
@@ -124,6 +132,36 @@ public class AdvancedFileClient {
 		
 	}
 	
+	private String getFileRoot(String file){
+		
+		boolean addBegin = false, addEnd=false;
+		
+		if (file.length() == 0)
+			return "";
+		
+		if (file.startsWith("/") || file.startsWith("\\")){
+			file = file.substring(1);
+			addBegin = true;
+		}
+		
+		if (file.endsWith("/") || file.endsWith("\\")){
+			file = file.substring(0, file.length()-1);
+			addEnd = true;
+		}
+			
+		if (file.indexOf("/") + file.indexOf("\\") > 0){
+			
+			return (addBegin? "\\":"") + file.substring(0, file.lastIndexOf("/") >  file.lastIndexOf("\\") ? file.lastIndexOf("/") : file.lastIndexOf("\\")) + (addEnd? "\\":"");
+			
+		}
+		
+		return "";
+		
+	}
+	
+	
+	
+	String rootToRemove = "";
 	String getDestRoot = "";
 	
 	protected void receiveFiles() throws IOException, ClassNotFoundException {
@@ -140,7 +178,7 @@ public class AdvancedFileClient {
 				FilePacket packet = (FilePacket)o;
 				
 				//Check for and create necessary folders
-				File dest = new File(getDestRoot + packet.file.getParent());//new File(root + packet.file.getParent());
+				File dest = new File(getDestRoot + packet.file.getParent().toString().substring(rootToRemove.length()));
 				if (!dest.exists()){
 					dest.mkdirs();
 					say("Folder Created: FileServer Database\\" + packet.file.getParent());
@@ -148,7 +186,7 @@ public class AdvancedFileClient {
 				}
 				
 				//Destination File
-				dest = new File(getDestRoot + packet.file);//new File(root.toString() + packet.file.toString());
+				dest = new File(getDestRoot + packet.file.toString().substring(rootToRemove.length()));
 				
 				dataOut = new FileOutputStream(dest);
 				
@@ -210,7 +248,7 @@ public class AdvancedFileClient {
 		
 		int index = temp.substring(0,temp.length()-1).lastIndexOf("\\");
 		
-		if (index > 0)
+		if (index < 0)
 			return "";
 		
 		return temp.substring(0, index);

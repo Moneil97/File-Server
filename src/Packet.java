@@ -49,6 +49,17 @@ class RequestListPacket extends Packet implements Serializable{
 }
 
 @SuppressWarnings("serial")
+class RequestFilePacket extends Packet implements Serializable{
+	
+	String file;
+	
+	public RequestFilePacket(String file) {
+		this.file = file;
+	}
+	
+}
+
+@SuppressWarnings("serial")
 class CDPacket extends Packet implements Serializable{
 	
 	String newDir;
@@ -62,6 +73,7 @@ class CDPacket extends Packet implements Serializable{
 enum Messages{
 	
 	START, INCOMING_FILE, NEXT_FILE, FINISH, 
-	LIST, CD, CD_SUCCESS, CD_FAIL
+	LIST, CD, CD_SUCCESS, CD_FAIL,
+	File_NOT_FOUND, GET_SUCCESS,
 	
 }

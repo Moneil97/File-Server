@@ -1,11 +1,15 @@
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileServer {
 
@@ -13,6 +17,7 @@ public class FileServer {
 	Socket control, data;
 	final String root = "C:\\Users\\Cameron\\Desktop\\FileServer Database\\";
 	int rootSub = root.toString().length();
+	ObjectOutputStream controlOut;
 	
 	public FileServer() {
 
@@ -38,7 +43,7 @@ public class FileServer {
 				
 				//Setup Streams
 				ObjectInputStream controlIn = new ObjectInputStream(control.getInputStream());
-				ObjectOutputStream controlOut = new ObjectOutputStream(control.getOutputStream());
+				controlOut = new ObjectOutputStream(control.getOutputStream());
 				InputStream dataIn = data.getInputStream();
 				FileOutputStream dataOut;
 				
@@ -47,6 +52,8 @@ public class FileServer {
 					
 					//Get packet from Client
 					Object o = controlIn.readObject();
+					
+					
 					if (o instanceof FilePacket){
 						FilePacket packet = (FilePacket)o;
 						
@@ -109,6 +116,28 @@ public class FileServer {
 							controlOut.writeObject(new MessagePacket(Messages.CD_FAIL));
 						
 					}
+					else if (o instanceof RequestFilePacket){
+						
+						RequestFilePacket packet = (RequestFilePacket)o;
+						
+						File file = addRoot(packet.file);
+						
+						say("Client getting: " + file);
+						
+						if (file.exists()){
+							say(file + " exists");
+							controlOut.writeObject(new MessagePacket(Messages.GET_SUCCESS));
+							sendFile(getAllFiles(file));
+							
+							
+						}
+						else{
+							say(file + " does not exist");
+							controlOut.writeObject(new MessagePacket(Messages.File_NOT_FOUND));
+						}
+						
+						
+					}
 					
 					
 				}
@@ -120,6 +149,67 @@ public class FileServer {
 
 	}
 	
+	private void sendFile(List<File> files) throws IOException {
+		
+		
+		
+		for (File file : files){
+			
+			//File fileWithRoot = addRoot(file);
+			
+			say("Sending: " + file);
+			controlOut.writeObject(new FilePacket(removeRoot(file)));
+			
+			//Setup Streams
+			InputStream in = new FileInputStream(file);
+			OutputStream out = data.getOutputStream();
+			
+			//Send File
+			byte[] bytes = new byte[8192];
+		    int count;
+		    while ((count = in.read(bytes)) > 0) {
+		        out.write(bytes, 0, count);
+		    }
+		    
+		    say("finished sending file");
+		    in.close();
+		    //out.flush();
+			
+		}
+		
+		data.getOutputStream().close();
+		Thread.yield();
+		controlOut.writeObject(new MessagePacket(Messages.FINISH));
+		
+		
+		
+	}
+	
+	private List<File> getAllFiles(File f) {
+		
+		List<File> files = new ArrayList<File>();
+		List<File> unknown = new ArrayList<File>();
+		
+		unknown.add(f);
+		
+		for (int i=0; i < unknown.size(); i++){
+			
+			File next = unknown.get(i);
+			
+			if (next.isFile())
+				files.add(next);
+			else
+				for (File file : next.listFiles())
+					unknown.add(file);
+			
+			unknown.remove(i--);
+			
+		}
+		
+		return files;
+		
+	}
+
 	private File removeRoot(File file){
 		return removeRoot(file.toString());
 	}
